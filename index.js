@@ -1,69 +1,105 @@
-//Servidor Node
-/*const http=require('http');
-const server=http.createServer((req,res)=>{
-	res.status = 200;
-	res.setHeader('Content-Type','text/plain');
-	res.end('Hello World');
-});
-server.listen(3000,()=>{
-	console.log("Server despleado");
-});*/
+/**
+ * Express & Node.js Fundamentals Guide
+ *
+ * Demostración de arquitectura de middleware, enrutamiento HTTP RESTful,
+ * renderizado del lado del servidor (SSR) con EJS y configuración de Express.
+ *
+ * @author Kevin Andrey Herrera Silva <kahs_kevin@hotmail.com>
+ */
 
-//Servidor Express
-const express=require("express");
-const morgan=require("morgan");
-const app= express();
+const express = require('express');
+const morgan = require('morgan');
+const path = require('path');
 
-//Settings
-app.set('appName','Kevin Andrey Herrera Silva');
-app.set('port',3000);
-app.set('view engine','ejs');
+const app = express();
 
-function logger(req,res, next){
-	console.log(`Route Received ${req.protocol}://${req.get('host')}${req.originalUrl}`);
-	next();
-}
+// ==========================================
+// 1. Configuraciones del Servidor (Settings)
+// ==========================================
+app.set('appName', 'Express Learning Architecture');
+app.set('port', process.env.PORT || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
-//Middlewares
+// ==========================================
+// 2. Middlewares (Pipeline de Procesamiento)
+// ==========================================
+
+// Parsing del cuerpo de peticiones JSON
 app.use(express.json());
-app.use(logger)//Muestra el log de las peticiones que llegan y su estado
-app.use(morgan('dev'))
 
-app.get('/',(req,res)=>{
-	const data=[{name: "Jhon"},{name: "Jose"},{name: "Cameron"}];
-	res.render('index.ejs',{people: data});
+// Logger personalizado para inspección de peticiones entrantes
+function customLogger(req, res, next) {
+  console.log(`[REQUEST] ${req.method} ${req.protocol}://${req.get('host')}${req.originalUrl}`);
+  next(); // Pasa el control al siguiente middleware en la cadena
+}
+app.use(customLogger);
+
+// Logger HTTP para entorno de desarrollo
+app.use(morgan('dev'));
+
+// Servicio de archivos estáticos (CSS, JS cliente, imágenes)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ==========================================
+// 3. Enrutamiento (REST Routing & Views)
+// ==========================================
+
+// Renderizado de vistas SSR con motor de plantillas EJS
+app.get('/', (req, res) => {
+  const people = [
+    { name: 'Jhon' },
+    { name: 'Jose' },
+    { name: 'Cameron' }
+  ];
+  res.render('index.ejs', { people });
 });
 
-
-//Routes
-app.all("/user",(req, res, next)=>{
-	console.log("Por aquí pasó");
-	next();
-})
-app.get("/user",(req,res)=>{
-	res.json({
-		username: "Usuario",
-		password: "Contraseña"
-	});
-});
-app.post("/user/:id", (req,res) => {
-	console.log(req.body);
-	console.log(req.params);
-	res.send(`User ${req.params.id} deleted`);
-})
-app.put("/contact", (req,res)=>{
-	res.send("PUT Received");
-})
-app.delete("/test", (req,res)=>{
-	res.send("DELETE Received");
-})
-
-app.use(express.static('public'));
-
-app.listen(app.get('port'), ()=>{
-	console.log(app.get('appName'));
-	console.log("Server on port",app.get('port'))
+// Middleware específico para el prefijo /user
+app.all('/user', (req, res, next) => {
+  console.log('[USER ROUTE] Interceptor ejecutado antes del manejador final');
+  next();
 });
 
-//instalar nodemon: npm install nodemon -D
-//correr nodemon: npx nodemon index.js
+// Consulta de recursos (GET)
+app.get('/user', (req, res) => {
+  res.json({
+    status: 'success',
+    data: {
+      username: 'UsuarioDemo',
+      role: 'admin'
+    }
+  });
+});
+
+// Creación o mutación con parámetros de ruta y body (POST)
+app.post('/user/:id', (req, res) => {
+  const { id } = req.params;
+  const body = req.body;
+
+  res.json({
+    message: `Usuario con ID ${id} procesado exitosamente`,
+    payload: body
+  });
+});
+
+// Actualización de recurso (PUT)
+app.put('/contact', (req, res) => {
+  res.send('PUT /contact recibido correctamente');
+});
+
+// Eliminación de recurso (DELETE)
+app.delete('/test', (req, res) => {
+  res.send('DELETE /test recibido correctamente');
+});
+
+// ==========================================
+// 4. Inicialización del Servidor
+// ==========================================
+const PORT = app.get('port');
+app.listen(PORT, () => {
+  console.log(`========================================`);
+  console.log(`🚀 ${app.get('appName')}`);
+  console.log(`📡 Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`========================================`);
+});

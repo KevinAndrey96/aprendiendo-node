@@ -1,14 +1,22 @@
 {
-  "name": "Node",
+  "name": "aprendiendo-node",
   "version": "1.0.0",
-  "description": "",
+  "description": "Guía práctica de fundamentos de Node.js y Express: middlewares, enrutamiento REST y SSR con EJS.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "nodejs",
+    "express",
+    "middlewares",
+    "rest-api",
+    "ejs",
+    "backend-architecture"
+  ],
+  "author": "Kevin Andrey Herrera Silva <kahs_kevin@hotmail.com>",
+  "license": "MIT",
   "dependencies": {
     "ejs": "^3.0.1",
     "express": "^4.17.1",
